@@ -26,7 +26,6 @@ ENV SELENIUM_LIBRARY_VERSION 4.0.0
 ENV SSH_LIBRARY_VERSION 3.4.0
 ENV XVFB_VERSION 1.20
 ENV PYMSSQL_VERSION 2.1.3
-ENV CYTHON_VERSION 0.29.13
 
 # Prepare binaries to be executed
 COPY bin/chromedriver.sh /opt/robotframework/bin/chromedriver
@@ -34,32 +33,33 @@ COPY bin/chromium-browser.sh /opt/robotframework/bin/chromium-browser
 COPY bin/run-tests-in-virtual-screen.sh /opt/robotframework/bin/
 
 # Install system dependencies
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories \
-  && echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
-  && echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories \
-  && apk update \
-  && apk --no-cache upgrade \
-  && apk --no-cache --virtual .build-deps add \
-    gcc \
-    libffi-dev \
-    linux-headers \
-    make \
-    musl-dev \
-    openssl-dev \
-    which \
-    wget \
-  && apk --no-cache add \
-    "chromium~$CHROMIUM_VERSION" \
-    "chromium-chromedriver~$CHROMIUM_VERSION" \
-    "firefox~$FIREFOX_VERSION" \
-    xauth \
-    "xvfb-run~$XVFB_VERSION" \
-  && mv /usr/lib/chromium/chrome /usr/lib/chromium/chrome-original \
-  && ln -sfv /opt/robotframework/bin/chromium-browser /usr/lib/chromium/chrome \
+RUN apt-get update
+#RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories \
+#  && echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
+#  && echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories \
+#  && apk update \
+#  && apk --no-cache upgrade \
+#  && apk --no-cache --virtual .build-deps add \
+#    gcc \
+#    libffi-dev \
+#    linux-headers \
+#    make \
+#    musl-dev \
+#    openssl-dev \
+#    which \
+#    wget \
+#  && apk --no-cache add \
+#    "chromium~$CHROMIUM_VERSION" \
+#    "chromium-chromedriver~$CHROMIUM_VERSION" \
+#    "firefox~$FIREFOX_VERSION" \
+#    xauth \
+#    "xvfb-run~$XVFB_VERSION" \
+#  && mv /usr/lib/chromium/chrome /usr/lib/chromium/chrome-original \
+#  && ln -sfv /opt/robotframework/bin/chromium-browser /usr/lib/chromium/chrome \
 # FIXME: above is a workaround, as the path is ignored
 
 # Install Robot Framework and Selenium Library
-  && pip3 install \
+RUN pip3 install \
     --no-cache-dir \
     robotframework==$ROBOT_FRAMEWORK_VERSION \
     robotframework-databaselibrary==$DATABASE_LIBRARY_VERSION \
@@ -69,17 +69,23 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositori
     robotframework-requests==$REQUESTS_VERSION \
     robotframework-seleniumlibrary==$SELENIUM_LIBRARY_VERSION \
     robotframework-sshlibrary==$SSH_LIBRARY_VERSION \
-    cython==$CYTHON_VERSION \
     pymssql==$PYMSSQL_VERSION \
-    PyYAML \
+    PyYAML
 
 # Download Gecko drivers directly from the GitHub repository
-  && wget -q "https://github.com/mozilla/geckodriver/releases/download/$GECKO_DRIVER_VERSION/geckodriver-$GECKO_DRIVER_VERSION-linux64.tar.gz" \
+RUN wget -q "https://github.com/mozilla/geckodriver/releases/download/$GECKO_DRIVER_VERSION/geckodriver-$GECKO_DRIVER_VERSION-linux64.tar.gz" \
     && tar xzf geckodriver-$GECKO_DRIVER_VERSION-linux64.tar.gz \
     && mkdir -p /opt/robotframework/drivers/ \
     && mv geckodriver /opt/robotframework/drivers/geckodriver \
-    && rm geckodriver-$GECKO_DRIVER_VERSION-linux64.tar.gz \
-  && apk del --no-cache --update-cache .build-deps
+    && rm geckodriver-$GECKO_DRIVER_VERSION-linux64.tar.gz
+RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+	&& dpkg -i google-chrome*.deb \
+	&& rm google-chrome*.deb
+RUN wget https://chromedriver.storage.googleapis.com/74.0.3729.6/chromedriver_linux64.zip \
+	&& unzip chromedriver_linux64.zip \
+	&& rm chromedriver_linux64.zip \
+	&& mv chromedriver /usr/local/bin \
+	&& chmod +x /usr/local/bin/chromedriver
 
 # Update system path
 ENV PATH=/opt/robotframework/bin:/opt/robotframework/drivers:$PATH
