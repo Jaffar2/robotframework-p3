@@ -33,7 +33,13 @@ COPY bin/chromium-browser.sh /opt/robotframework/bin/chromium-browser
 COPY bin/run-tests-in-virtual-screen.sh /opt/robotframework/bin/
 
 # Install system dependencies
-RUN apt-get update
+RUN apt-get update \
+    && apt-get install -y build-essential libssl-dev libffi-dev python-dev \
+       python-pip python-dev gcc phantomjs firefox \
+       xvfb zip wget ca-certificates ntpdate \
+       libnss3-dev libxss1 libappindicator3-1 libindicator7 gconf-service libgconf-2-4 libpango1.0-0 xdg-utils fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
+    
 #RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories \
 #  && echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
 #  && echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories \
