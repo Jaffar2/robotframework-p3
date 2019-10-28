@@ -9,7 +9,7 @@ RUN apt-get update \
     # -- Chrome dependencies
     fonts-liberation libappindicator3-1 libnspr4 libnss3 libxss1 xdg-utils
 # -- Dependencies & Clean up
-RUN apt-get install -y wget xauth xvfb \
+RUN apt-get install -y wget xauth xvfb xvfb-run \
     && rm -rf /var/lib/apt/lists/*
 # -- Setup X Window Virtual Framebuffer
 ENV SCREEN_COLOUR_DEPTH 24
